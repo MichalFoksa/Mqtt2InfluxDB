@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date{HH:mm:ss.SSS} [%-5level] %-26logger{1} %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="logfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <prudent>false</prudent>
+        <!-- When prudent=true, file property of FileAppender cannot be set and must be left blank -->
+        <file>./log/Mqtt2InfluxDB.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- weekly rollover, compressed -->
+            <fileNamePattern>./log/Mqtt2InfluxDB_%d{yyyy-ww}.log</fileNamePattern>
+            <maxHistory>52</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-42(%date [%thread]) [%-5level] %logger{30} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="net.michalfoksa.mqtt2influxdb.Callback$RulesIterator">
+        <level value="WARN" />
+    </logger>
+
+    <logger name="org.springframework.beans">
+        <level value="INFO" />
+    </logger>
+
+     <root>
+        <appender-ref ref="console"/>
+        <appender-ref ref="logfile"/>
+    </root>
+</configuration>

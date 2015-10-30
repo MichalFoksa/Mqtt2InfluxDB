@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <!--
+        This example shows how to log data sent on two hardcoded topics: 
+            1. pre/home/livingroom/temperature 
+            2. pre/home/livingroom/humidity. 
+     -->
+
+    <!-- MQTT BROKER DESCRIPTOR -->
+    <bean id="BrokerDescriptor" class="net.michalfoksa.mqtt2influxdb.BrokerDescriptor">
+        <constructor-arg name="uri" value="tcp://example.com:1884" />
+        <property name="clientId" value="example_1_ha" />
+    </bean>
+
+    <!-- DESTINATIONS -->
+    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv08">
+        <constructor-arg name="uri" value="http://example.com:8086" />
+        <constructor-arg name="username" value="test" />
+        <constructor-arg name="password" value="testpwd" />
+        <property name="defaultDatabaseName" value="dev" />
+    </bean>
+
+    <!-- PAYLOAD PARSERS -->
+    <!-- 
+        LiteralParser is a parser where measurement name and field name are 
+        hard configured. Parser just tries to interpret message payload as a 
+        float number value e.g.: 123 or 45.2. 
+     -->
+    <bean id="LivingroomTempParser" class="net.michalfoksa.mqtt2influxdb.parser.LiteralParser">
+        <constructor-arg name="measurementName" value="livingroom" />
+        <constructor-arg name="fieldName" value="temperature" />    
+    </bean>
+
+    <bean id="LivingroomHumParser" class="net.michalfoksa.mqtt2influxdb.parser.LiteralParser">
+        <constructor-arg name="measurementName" value="livingroom" />
+        <constructor-arg name="fieldName" value="humidity" />    
+    </bean>
+
+    <!-- FILTER RULES -->
+    <!-- I do not want to log any retained or duplicate message. Probably they 
+        are already written into DB.  
+
+        RejectRetainedOrDuplicate matches any message where duplicate or 
+        retained flag is set.
+        If match is true, message processing is aborted.
+     -->
+    <bean id="RejectRetainedOrDuplicate"
+        class="net.michalfoksa.mqtt2influxdb.rule.RejectRetainedOrDuplicate" />
+
+    <!-- Parse message sent on "pre/home/livingroom/temperature" topic name.
+
+        AcceptWildcardRule matches topic name against wildcard string. Wildcard
+        is an expression where characters with special meaning are:
+           - star (*) - any number of any characters
+           - question mark (?) - exactly one character
+
+        If match is true, message is processed by PayloadParser. Default 
+        behavior is:
+          - If parsing is successful further processing is aborted.
+          - If parsing is fails, message processing continues to next rule.
+     -->
+    <bean id="LivingroomTempRule" class="net.michalfoksa.mqtt2influxdb.rule.AcceptWildcardRule">
+        <constructor-arg name="destination" ref="InfluxDB" />
+        <constructor-arg name="wildcardPattern" value="pre/home/livingroom/temperature" />
+        <constructor-arg name="payloadParser" ref="LivingroomTempParser" />
+    </bean>
+
+    <!-- Parse message sent on "pre/home/livingroom/humidity" topic name. -->
+    <bean id="LivingroomHumRule" class="net.michalfoksa.mqtt2influxdb.rule.AcceptWildcardRule">
+        <constructor-arg name="destination" ref="InfluxDB" />
+        <constructor-arg name="wildcardPattern" value="pre/home/livingroom/humidity" />
+        <constructor-arg name="payloadParser" ref="LivingroomHumParser" />
+    </bean>
+
+    <!-- APPLICATION -->
+    <bean class="net.michalfoksa.mqtt2influxdb.Mqtt2InfluxDb"
+        init-method="start">
+        <constructor-arg name="brokerDescriptor" ref="BrokerDescriptor" />
+
+        <constructor-arg name="destinations">
+            <list>
+                <ref bean="InfluxDB" />
+            </list>
+        </constructor-arg>
+
+        <constructor-arg name="filterRules">
+            <list>
+                <ref bean="RejectRetainedOrDuplicate" />
+                <ref bean="LivingroomTempRule" />
+                <ref bean="LivingroomHumRule" />
+            </list>
+        </constructor-arg>
+
+        <!--  List of topic names to subscribe to -->
+        <property name="subscribedTopicNames">
+            <map>
+                <entry key="pre/home/livingroom/temperature" value="1" />
+                <entry key="pre/home/livingroom/humidity" value="1" />
+            </map>
+        </property>
+    </bean>
+
+</beans>

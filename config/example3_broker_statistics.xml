@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 
+        This example displays one way how to track broker performance by 
+        subscribing to various $SYS/… topics. In this case RSMB broker was used.
+        Other brokers may use different topic names.
+
+        Because for each topic name, own rule and own parser are created, rules
+        and parsers beans are defined as inner beans.
+    -->
+
+    <!-- MQTT BROKER DESCRIPTOR -->
+    <bean id="BrokerDescriptor" class="net.michalfoksa.mqtt2influxdb.BrokerDescriptor">
+        <constructor-arg name="uri" value="tcp://example.com:1884" />
+        <property name="clientId" value="example_3_bs" />
+    </bean>
+
+    <!-- DESTINATIONS -->
+    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv08">
+        <constructor-arg name="uri" value="http://example.com:8086" />
+        <constructor-arg name="username" value="test" />
+        <constructor-arg name="password" value="testpwd" />
+        <property name="defaultDatabaseName" value="dev" />
+    </bean>
+
+    <!-- Bean Parents -->
+    <bean id="ParserParent" class="net.michalfoksa.mqtt2influxdb.parser.LiteralParser" abstract="true">
+        <constructor-arg name="measurementName" value="broker" />    
+    </bean>
+
+    <bean id="RuleParent" class="net.michalfoksa.mqtt2influxdb.rule.AcceptWildcardRule" abstract="true">
+        <constructor-arg name="destination" ref="InfluxDB" />
+    </bean>
+
+    <bean class="net.michalfoksa.mqtt2influxdb.Mqtt2InfluxDb"
+        init-method="start">
+        <constructor-arg name="brokerDescriptor" ref="BrokerDescriptor" />
+
+        <constructor-arg name="destinations">
+            <list>
+                <ref bean="InfluxDB" />
+            </list>
+        </constructor-arg>
+
+        <constructor-arg name="filterRules">
+            <list>
+                <bean class="net.michalfoksa.mqtt2influxdb.rule.RejectRetainedOrDuplicate" />
+
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/wildcard_subscriptions/count" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="wildcard_subscriptions" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/subscriptions/count" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="subscriptions" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/retained messages/count" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="retained_messages" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/restart count" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="restart" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/messages/sent" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="messages_sent" />
+                        </bean>
+                    </constructor-arg>
+                </bean>         
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/messages/received" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="messages_received" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/messages/per second/sent" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="messages_sent_per_second" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/messages/per second/received" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="messages_received_per_second" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/heap/maximum size" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="heap_maximum_size" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/heap/current size" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="heap_current_size" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/ffdc/count" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="ffdc" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/client count/disconnected" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="client_disconnected" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/client count/connected" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="client_connected" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/bytes/sent" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="bytes_sent" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/bytes/received" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="bytes_received" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/bytes/per second/sent" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="bytes_sent_per_second" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+                <bean parent="RuleParent">
+                    <constructor-arg name="wildcardPattern" value="$SYS/broker/bytes/per second/received" />
+                    <constructor-arg name="payloadParser">
+                        <bean parent="ParserParent">
+                            <constructor-arg name="fieldName" value="bytes_received_per_second" />
+                        </bean>
+                    </constructor-arg>
+                </bean>
+            </list>
+        </constructor-arg>
+
+        <property name="subscribedTopicNames">
+            <map>
+                <!-- key = Topic name , value = QOS -->
+                <entry key="$SYS/broker/wildcard_subscriptions/count" value="1" />
+                <entry key="$SYS/broker/subscriptions/count" value="1" />
+                <entry key="$SYS/broker/retained messages/count" value="1" />
+                <entry key="$SYS/broker/restart count" value="1" />
+                <entry key="$SYS/broker/messages/sent" value="1" />
+                <entry key="$SYS/broker/messages/received" value="1" />
+                <entry key="$SYS/broker/messages/per second/sent" value="1" />
+                <entry key="$SYS/broker/messages/per second/received" value="1" />
+                <entry key="$SYS/broker/heap/maximum size" value="1" />
+                <entry key="$SYS/broker/heap/current size" value="1" />
+                <entry key="$SYS/broker/ffdc/count" value="1" />
+                <entry key="$SYS/broker/client count/disconnected" value="1" />
+                <entry key="$SYS/broker/client count/connected" value="1" />
+                <entry key="$SYS/broker/bytes/sent" value="1" />
+                <entry key="$SYS/broker/bytes/received" value="1" />
+                <entry key="$SYS/broker/bytes/per second/sent" value="1" />
+                <entry key="$SYS/broker/bytes/per second/received" value="1" />
+            </map>
+        </property>
+    </bean>
+
+</beans>

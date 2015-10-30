@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <!--
+        This example displays how to log data sent on multiple topics using 
+        regular expression to identify them. This way all possible topic names
+        do not have to be known beforehand, they just have to follow certain 
+        convention given by regular expression(s). 
+     -->
+    
+    <!-- MQTT BROKER DESCRIPTOR -->
+    <bean id="BrokerDescriptor" class="net.michalfoksa.mqtt2influxdb.BrokerDescriptor">
+        <constructor-arg name="uri" value="tcp://example.com:1884" />
+        <property name="clientId" value="example_2_ha" />
+    </bean>
+
+    <!-- DESTINATIONS -->
+    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv08">
+        <constructor-arg name="uri" value="http://example.com:8086" />
+        <constructor-arg name="username" value="test" />
+        <constructor-arg name="password" value="testpwd" />
+        <property name="defaultDatabaseName" value="dev" />
+    </bean>
+
+    <!-- PAYLOAD PARSERS -->
+    <!-- Following parser uses third level in topic name as measurement name 
+        and everything from the fourth level on as a field name: 
+            pre/home/[measurement name]/[field name]
+        So if third level is used as room name and fourth level as sensor name
+        any sensor in any room can be tracked this way, e.g:
+            pre/home/livingroom/temperature
+            pre/home/livingroom/humidity
+            pre/home/livingroom/battery_voltage
+            pre/home/kitchen/battery_voltage
+        etc …
+
+        TopicRegExpParser uses two regular expressions to determine measurement 
+        and field names. One expression is called measurementName, second one 
+        is called fieldName. Each expression must contain one “Capturing group”
+        which value is used as name.
+
+        Message payload is interpreted as a float number value e.g.: 123 or 45.2.
+     -->
+    <bean id="PayloadParser" class="net.michalfoksa.mqtt2influxdb.parser.TopicRegExpParser">
+        <constructor-arg name="measurementNameRegExp"   value="^pre\/home\/([a-zA-Z0-9-]+)\/.+$" />
+        <constructor-arg name="fieldNameRegExp"         value="^pre\/home\/[a-zA-Z0-9-]+\/(.+)$" />
+    </bean>
+
+    <!-- FILTER RULES -->
+    <!-- I do not want to log any retained or duplicate message. Probably they 
+        are already written into DB.  
+
+        RejectRetainedOrDuplicate matches any message where duplicate or 
+        retained flag is set.
+        If match is true, message processing is aborted.
+     -->
+    <bean id="RejectRetainedOrDuplicate"
+        class="net.michalfoksa.mqtt2influxdb.rule.RejectRetainedOrDuplicate" />
+
+    <!-- An example how to filter out certain topic names:
+         Reject any message sent on any topic name starting with "pre/home/[ClientId]".  
+
+        RejectWildcardRule matches topic name against wildcard string. Wildcard
+        is an expression where characters with special meaning are:
+           - star (*) - any number of any characters
+           - question mark (?) - exactly one character
+
+        If match is true, message processing is aborted.
+    -->
+    <bean id="RejectWithClientId" class="net.michalfoksa.mqtt2influxdb.rule.RejectWildcardRule">
+        <constructor-arg name="wildcardPattern" value="pre/home/[ClientId]*" />
+    </bean>
+
+    <!-- Parse any message sent on a topic name starting with "pre/home/".
+
+        AcceptWildcardRule matches topic name against wildcard string. Wildcard
+        is an expression where characters with special meaning are:
+           - star (*) - any number of any characters
+           - question mark (?) - exactly one character 
+     -->
+    <bean id="AcceptRule" class="net.michalfoksa.mqtt2influxdb.rule.AcceptWildcardRule">
+        <constructor-arg name="destination" ref="InfluxDB" />
+        <constructor-arg name="wildcardPattern" value="pre/home/*" />
+        <constructor-arg name="payloadParser" ref="PayloadParser" />
+    </bean>
+
+    <!-- APPLICATION -->
+    <bean class="net.michalfoksa.mqtt2influxdb.Mqtt2InfluxDb"
+        init-method="start">
+        <constructor-arg name="brokerDescriptor" ref="BrokerDescriptor" />
+
+        <constructor-arg name="destinations">
+            <list>
+                <ref bean="InfluxDB" />
+            </list>
+        </constructor-arg>
+
+        <constructor-arg name="filterRules">
+            <list>
+                <ref bean="RejectRetainedOrDuplicate" />
+                <ref bean="RejectWithClientId" />
+                <ref bean="AcceptRule" />
+            </list>
+        </constructor-arg>
+
+        <!--  List of topic names to subscribe to -->
+        <property name="subscribedTopicNames">
+            <map>
+                <entry key="pre/home/#" value="1" />
+            </map>
+        </property>
+    </bean>
+
+</beans>
