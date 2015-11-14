@@ -27,6 +27,9 @@ public class Mqtt2InfluxDb {
 
     private List<Destination> destinations;
 
+    MqttClient mqttClient = null;
+    MqttConnectOptions options = null;
+
     @ConstructorProperties({ "brokerDescriptor", "destination", "filterRules" })
     public Mqtt2InfluxDb(BrokerDescriptor brokerDescriptor, Destination destination,
             List<FilterRule> filterRules) {
@@ -50,9 +53,7 @@ public class Mqtt2InfluxDb {
         this.destinations = destinations;
     }
 
-    public void start() {
-
-        MqttClient mqttClient = null ;
+    public void start() throws MqttException {
 
         do {
             // Connected each disconnected destination
@@ -62,13 +63,23 @@ public class Mqtt2InfluxDb {
                 }
             }
 
-            // Connect broker when disconnected
-            if ( mqttClient == null || !mqttClient.isConnected() ) {
-                try {
-                    mqttClient = connectMqtt( brokerDescriptor );
-                    log.info("MQTT broker connected.");
 
-                    mqttClient.setCallback( callback );
+            if (mqttClient == null){
+                mqttClient = getMqttClient(brokerDescriptor);
+                mqttClient.setCallback( callback );
+
+                options = getMqttConnectOptions(brokerDescriptor);
+            }
+
+
+            // Connect broker when disconnected
+            if ( !mqttClient.isConnected() ) {
+
+                try {
+
+                    log.info("Connecting MQTT broker {}" , mqttClient.getServerURI());
+                    mqttClient.connect(options);
+                    log.info("MQTT broker connected to {}" , mqttClient.getServerURI());
 
                     if ( subscribedTopicNames == null || subscribedTopicNames.size() == 0) {
                         log.warn("No subscriptions set! Subscribing to topic #, QOS 0");
@@ -107,7 +118,7 @@ public class Mqtt2InfluxDb {
 
     }
 
-    public MqttClient connectMqtt (BrokerDescriptor brokerDescriptor) throws MqttException {
+    protected MqttClient getMqttClient (BrokerDescriptor brokerDescriptor) throws MqttException{
 
         String clientId = brokerDescriptor.getClientId();
         if ( clientId == null ){
@@ -115,16 +126,20 @@ public class Mqtt2InfluxDb {
         }
 
         MqttClient client = new MqttClient(
-                brokerDescriptor.getUri(),  // URI
-                clientId,                   //ClientId
-                new MemoryPersistence());   //Persistence
+                brokerDescriptor.getUris().get(0),  // URI
+                clientId,                           //ClientId
+                new MemoryPersistence());           //Persistence
+
+        return client ;
+    }
+
+    protected MqttConnectOptions getMqttConnectOptions (BrokerDescriptor brokerDescriptor){
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setMqttVersion(brokerDescriptor.getMqttVersion());
-        log.info("Connecting MQTT broker {}" , brokerDescriptor.getUri());
-        client.connect(options);
+        options.setServerURIs(brokerDescriptor.getUris().toArray(new String[0]));
 
-        return client ;
+        return options ;
     }
 
     public void addDestinations(List<Destination> destinations) {

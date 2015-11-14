@@ -14,7 +14,7 @@
 
     <!-- MQTT BROKER DESCRIPTOR -->
     <bean id="BrokerDescriptor" class="net.michalfoksa.mqtt2influxdb.BrokerDescriptor">
-        <constructor-arg name="uri" value="tcp://example.com:1883" />
+        <constructor-arg name="serverURI" value="tcp://example.com:1883" />
         <property name="clientId" value="example_3_bs" />
     </bean>
 
