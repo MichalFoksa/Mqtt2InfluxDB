@@ -6,15 +6,19 @@ Utility subscribes to MQTT broker, filters messages through chain of rules and w
 
 ## Prerequisites
 
-Java 7 Runtime
+#### To Run
+ - Java 7 Runtime
+
+#### To Build
+ - Java SE Development Kit 7
+ - Apache Maven 3.2.1
 
 ## Features
-
-- Logback logging
+ - Eclipse Paho Java Client
+ - Logback logging
 
 ## Limitations
-- InfluxDB v0.8.x support only
-
+ - InfluxDB v0.8.x support only
 
 ## Getting Started
 
