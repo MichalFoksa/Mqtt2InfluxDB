@@ -16,9 +16,15 @@ import org.slf4j.LoggerFactory;
 
 public class Callback implements MqttCallback {
 
+    private static final long LOG_INTERVAL = 60L * 1000; // 60 seconds
+
 	static Logger log = LoggerFactory.getLogger(Callback.class) ;
 
 	private List<FilterRule> filterRules = new ArrayList<FilterRule>();
+
+    private int messagesReceivedCount = 0 ;
+    private int messagesWrittenCount = 0 ;
+    private long nextLogCount = System.currentTimeMillis() + LOG_INTERVAL;
 
 	public Callback(List<FilterRule> filterRules) {
         super();
@@ -39,6 +45,8 @@ public class Callback implements MqttCallback {
 
     	log.debug("Message received. Topic name: " + topicName);
 
+    	messagesReceivedCount++;
+
     	for (FilterRule rule : getRulesIterator(topicName , message)){
     	    Point point = null;
     	    try {
@@ -55,6 +63,7 @@ public class Callback implements MqttCallback {
 
     	    try {
                 rule.getDestination().write( point );
+                messagesWrittenCount++;
             } catch (RuntimeException e) {
                 log.error("Exception occured in database write: {} to {}." , e.getMessage() , rule.getDestination());
                 log.error( "Terminating" );
@@ -62,6 +71,13 @@ public class Callback implements MqttCallback {
                 System.exit(1);
             }
     	} // for each rule
+
+    	// Log number of processed messages
+    	if ( nextLogCount < System.currentTimeMillis() ){
+    	    log.info("Received {} messages, {} written." , messagesReceivedCount , messagesWrittenCount);
+    	    messagesReceivedCount = messagesWrittenCount = 0;
+    	    nextLogCount = System.currentTimeMillis() + LOG_INTERVAL;
+    	}
     }
 
 	public List<FilterRule> getFilterRules() {
