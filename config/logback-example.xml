@@ -11,7 +11,7 @@
         <!-- When prudent=true, file property of FileAppender cannot be set and must be left blank -->
         <file>./log/Mqtt2InfluxDB.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
+            <level>INFO</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- weekly rollover, compressed -->
