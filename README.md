@@ -7,18 +7,17 @@ Utility subscribes to MQTT broker, filters messages through chain of rules and w
 ## Prerequisites
 
 #### To Run
- - Java 7 Runtime
+ - Java 1.7+
 
 #### To Build
- - Java SE Development Kit 7
- - Apache Maven 3.2.1
+ - Java 1.7+
+ - Maven 3.2+
 
 ## Features
+ - InfluxDB v0.9 support
+ - InfluxDB v0.8 support
  - Eclipse Paho Java Client
  - Logback logging
-
-## Limitations
- - InfluxDB v0.8.x support only
 
 ## Getting Started
 
@@ -33,7 +32,7 @@ Application consists of java beans which have to be glued together by a Spring X
 Typical configuration consists following beans:
  -	One BrokerDescriptor – describes how to connect to a MQTT broker.
  -	One or more FilterRules. It:
-	 - Describes how message matches the rule.
+   - Describes how message matches the rule.
    - Optionally contains Payload parser. It is called to interpret message payload when rule matches.
    - Contains Destination where data are written when message matches the rule and parsing is successful.
  -	One or more PayloadParsers. They describe how to interpret a message.
@@ -53,18 +52,20 @@ Example configurations are in `config/` directory.
  - `example3_broker_statistics.xml` - it displays one way how to track broker performance by subscribing to various `$SYS/…` topics. In this case RSMB broker was used. Other brokers may use different topic names.
 
 ### Starting Mqtt2InfluxDB
-    java -Dloader.path="config/" -jar target/Mqtt2InfluxDB-0.0.1-SNAPSHOT.jar [your_configuration.xml]
+    java -Dloader.path="config/" -jar target/Mqtt2InfluxDB-0.0.2-SNAPSHOT.jar [your_configuration.xml]
 
 ### Tips and Tricks
 
- - To test your configuration without writing anything into database, replace InfluxDB connector for a dummy one. In application context replace `InfluxDBv08` bean for `DummyInfluxDBv08`:
-
+ - To test your configuration without writing anything into the database, instead of InfluxDB connector use dummy connector. Replace `InfluxDBv09` bean for `DummyInfluxDBv09` in application context, e.g.:
 ```XML
-from <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv08">
-to   <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.DummyInfluxDBv08">
+from <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv09">
+to   <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.DummyInfluxDBv09">
 ```
+*_Similar dummy connector exists also for InfluxDB v0.8._
 
  - http://regexpal.com/ is handy online regular expression tester.
+ - [How to inversion of control (IoC) and dependency injection (DI) patterns in Spring framework](http://howtodoinjava.com/2013/03/19/inversion-of-control-ioc-and-dependency-injection-di-patterns-in-spring-framework-and-related-interview-questions/).
+ - [Spring IoC container](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html) - comprehensive manual.
 
 ## License
 
