@@ -1,16 +1,10 @@
 package net.michalfoksa.mqtt2influxdb.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import net.michalfoksa.mqtt2influxdb.dto.Point;
 
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Pong;
-import org.influxdb.dto.Serie;
 import org.influxdb.impl.InfluxDBImpl;
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,12 +12,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 
-public class InfluxDBv08Test {
+public class InfluxDBv09Test {
 
     int retries = 1;
     InfluxDBReconect db ;
 
-    class InfluxDBReconect extends InfluxDBv08 {
+    class InfluxDBReconect extends InfluxDBv09 {
 
         public InfluxDBReconect(String uri, String username, String password) {
             super(uri, username, password);
@@ -40,44 +34,20 @@ public class InfluxDBv08Test {
                     retryCount++;
                     Pong pong = new Pong();
                     if ( retryCount < retries ){
-                        pong.setStatus("nok");
+                        pong.setVersion("unknown");
                     } else {
-                        pong.setStatus("ok");
+                        pong.setVersion(DummyInfluxDBv09.MOCK_VERSION);
                         assertEquals(retries, retryCount);
                     }
                     return pong;
                 }
 
                 @Override
-                public void write(final String database, final TimeUnit precision, final Serie... series){
-                    if (series == null || series.length == 0){
+                public void write(String database, String retentionPolicy, org.influxdb.dto.Point point){
+                    if (point == null){
                         return;
                     }
-
-                    assertEquals("measurement" , series[0].getName());
-
-                    assertEquals(1 , series[0].getRows().size() );
-
-                    Map<String, Object> row = series[0].getRows().get(0);
-                    assertNotNull(row);
-
-                    assertNotNull(row.get("temperature"));
-                    assertEquals( 25.1 , row.get("temperature") );
-
-                    assertNotNull(row.get("humidity"));
-                    assertEquals( 80 , row.get("humidity") );
-
-//                    for ( Map<String, Object> r : series[0].getRows() ){
-//                        for ( int i = 0 ; i < series[0].getColumns().length ; i++ ){
-//                            String columnName = series[0].getColumns()[i];
-//                            System.out.println(
-//                                    columnName + " " +
-//                                        r.get(columnName).toString()
-//                                    );
-//                        }
-//                    }
-                }
-
+                };
             };
         }
     }
@@ -95,7 +65,7 @@ public class InfluxDBv08Test {
 
         exception.expect( RuntimeException.class );
         exception.expectMessage( "InfluxDb null is not yet connected" );
-        new InfluxDBv08(null , null , null).write(null);
+        new InfluxDBv09(null , null , null).write(null);
     }
 
     @Test
