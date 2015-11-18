@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.michalfoksa</groupId>
     <artifactId>Mqtt2InfluxDB</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1-wo_v08client</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -41,12 +41,13 @@
         </dependency>
 
         <!-- InfluxDB client -->
+<!--  
         <dependency>
             <groupId>org.influxdb</groupId>
             <artifactId>influxdb-java</artifactId>
             <version>${influxdb-java.version}</version>
         </dependency>
-
+ -->
          <!-- Google Guava -->
          <dependency>
             <groupId>com.google.guava</groupId>
@@ -59,6 +60,17 @@
             <groupId>com.squareup.retrofit</groupId>
             <artifactId>retrofit</artifactId>
             <version>${retrofit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp-urlconnection</artifactId>
+            <version>2.0.0</version>
         </dependency>
 
         <!-- Logging -->

@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit;
 
 import net.michalfoksa.mqtt2influxdb.dto.Point;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.dto.Pong;
-import org.influxdb.dto.Serie;
-import org.influxdb.impl.InfluxDBImpl;
+import org.influxdb.v08.InfluxDB;
+import org.influxdb.v08.dto.Pong;
+import org.influxdb.v08.dto.Serie;
+import org.influxdb.v08.impl.InfluxDBImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

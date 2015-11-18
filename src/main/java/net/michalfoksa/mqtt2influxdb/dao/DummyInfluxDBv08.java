@@ -2,10 +2,10 @@ package net.michalfoksa.mqtt2influxdb.dao;
 
 import java.util.concurrent.TimeUnit;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.dto.Pong;
-import org.influxdb.dto.Serie;
-import org.influxdb.impl.InfluxDBImpl;
+import org.influxdb.v08.InfluxDB;
+import org.influxdb.v08.dto.Pong;
+import org.influxdb.v08.dto.Serie;
+import org.influxdb.v08.impl.InfluxDBImpl;
 
 public class DummyInfluxDBv08 extends InfluxDBv08 {
 

@@ -5,12 +5,12 @@ import java.util.concurrent.TimeUnit;
 
 import net.michalfoksa.mqtt2influxdb.dto.Point;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.InfluxDB.LogLevel;
-import org.influxdb.InfluxDBFactory;
-import org.influxdb.dto.Pong;
-import org.influxdb.dto.Serie;
-import org.influxdb.dto.Serie.Builder;
+import org.influxdb.v08.InfluxDB;
+import org.influxdb.v08.InfluxDB.LogLevel;
+import org.influxdb.v08.InfluxDBFactory;
+import org.influxdb.v08.dto.Pong;
+import org.influxdb.v08.dto.Serie;
+import org.influxdb.v08.dto.Serie.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +36,7 @@ public class InfluxDBv08 implements Destination {
         retryAttempts = 3;
     }
 
+    @Override
     public void connect() {
 
         if (influxDBclient == null){
@@ -66,6 +67,7 @@ public class InfluxDBv08 implements Destination {
      *
      * @return <code>true</code> if connected, <code>false</code> otherwise.
      */
+    @Override
     public boolean isConnected(){
         if ( influxDBclient != null ){
             return true;
@@ -73,10 +75,12 @@ public class InfluxDBv08 implements Destination {
         return false;
     }
 
+    @Override
     public void write(Point point) {
         this.write(point , defaultDatabaseName);
     }
 
+    @Override
     public void write(Point point , String databaseName) {
 
         if (influxDBclient == null){
