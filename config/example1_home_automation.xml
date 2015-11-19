@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    
+
     <!--
         This example shows how to log data sent on two hardcoded topics: 
             1. pre/home/livingroom/temperature 
@@ -16,7 +16,10 @@
     </bean>
 
     <!-- DESTINATIONS -->
-    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv08">
+    <!-- Choose between connector for InfluxDB v0.9 or v0.8 (bean InfluxDBv09 
+        or InfluxDBv08).
+    -->
+    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv09">
         <constructor-arg name="uri" value="http://example.com:8086" />
         <constructor-arg name="username" value="test" />
         <constructor-arg name="password" value="testpwd" />

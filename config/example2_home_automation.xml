@@ -2,30 +2,35 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    
+
     <!--
-        This example displays how to log data sent on multiple topics using 
-        regular expression to identify them. This way all possible topic names
-        do not have to be known beforehand, they just have to follow certain 
-        convention given by regular expression(s). 
+        This example displays how to log data sent on multiple topics using
+        regular expression to identify topic name. This way all possible topic
+        names do not have to be known beforehand, they just have to follow
+        certain convention given by regular expression(s). 
      -->
-    
+
     <!-- MQTT BROKER DESCRIPTOR -->
     <bean id="BrokerDescriptor" class="net.michalfoksa.mqtt2influxdb.BrokerDescriptor">
         <constructor-arg name="serverURI" value="tcp://example.com:1883" />
-        <!-- Alternatively a list of one or more serverURIs can be provided for high availability solutions. -->        
+        <!-- Alternatively a list of one or more serverURIs can be provided for
+            high availability solutions.
+         -->
         <!-- constructor-arg name="serverURIs">
             <list>
-                <value>tcp://example1.com:1883</value>
-                <value>tcp://example2.com:1883</value>
-                <value>tcp://example3.com:1883</value>
+                <value>tcp://broker1.example.com:1883</value>
+                <value>tcp://broker2.example.com:1883</value>
+                <value>tcp://broker3.example.com:1883</value>
             </list>
         </constructor-arg-->
         <property name="clientId" value="example_2_ha" />
     </bean>
 
     <!-- DESTINATIONS -->
-    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv08">
+    <!-- Choose between connector for InfluxDB v0.9 or v0.8 (bean InfluxDBv09 
+        or InfluxDBv08).
+    -->
+    <bean id="InfluxDB" class="net.michalfoksa.mqtt2influxdb.dao.InfluxDBv09">
         <constructor-arg name="uri" value="http://example.com:8086" />
         <constructor-arg name="username" value="test" />
         <constructor-arg name="password" value="testpwd" />
