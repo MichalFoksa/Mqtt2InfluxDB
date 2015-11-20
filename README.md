@@ -45,11 +45,14 @@ Default configuration file name is `applicationContext.xml`. Alternatively confi
 
 Example configurations are in `config/` directory.
 
- - `example1_home_automation.xml` – shows how to log data sent on two hardcoded topics: `pre/home/livingroom/temperature` and `pre/home/livingroom/humidity`.
+ - [example1_home_automation.xml](https://github.com/MichalFoksa/Mqtt2InfluxDB/blob/master/config/example1_home_automation.xml) –
+shows how to log data sent on two hardcoded topics: `pre/home/livingroom/temperature` and `pre/home/livingroom/humidity`.
 
- - `example2_home_automation.xml` – this is more elaborate example. It displays how to log data sent on multiple topics using regular expression to identify them. This way all possible topic names do not have to be known beforehand, they just have to follow certain convention given by regular expression(s).
+ - [example2_home_automation.xml](https://github.com/MichalFoksa/Mqtt2InfluxDB/blob/master/config/example2_home_automation.xml) –
+more elaborate example. It displays how to log data sent on multiple topics using regular expression to identify them. This way all possible topic names do not have to be known beforehand, they just have to follow certain convention given by regular expression(s).
 
- - `example3_broker_statistics.xml` - it displays one way how to track broker performance by subscribing to various `$SYS/…` topics. In this case RSMB broker was used. Other brokers may use different topic names.
+ - [example3_broker_statistics.xml](https://github.com/MichalFoksa/Mqtt2InfluxDB/blob/master/config/example3_broker_statistics.xml) -
+displays one way how to track broker performance by subscribing to various `$SYS/…` topics. In this case RSMB broker was used. Other brokers may use different topic names.
 
 ### Starting Mqtt2InfluxDB
     java -Dloader.path="config/" -jar target/Mqtt2InfluxDB-0.0.2-SNAPSHOT.jar [your_configuration.xml]
