@@ -11,6 +11,9 @@ import org.influxdb.dto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 public class InfluxDBv09 implements Destination {
 
     public static final String RETENTION_DEFAULT = "default";
@@ -81,25 +84,13 @@ public class InfluxDBv09 implements Destination {
 
     @Override
     public void write(Point point , String databaseName) {
+        Preconditions.checkNotNull(influxDBclient, "InfluxDb " + uri + " is not yet connected");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(databaseName), "Database name must not be null or empty.");
 
-        if (influxDBclient == null){
-            throw new RuntimeException( "InfluxDb " + uri + " is not yet connected");
-        }
-
-//        BatchPoints batchPoints = BatchPoints
-//                .database(databaseName)
-//                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-//                .retentionPolicy("default")
-//                .build();
-
-        //Point point1 = Point.measurement("cpu").field("idle", 90L).field("user", 9L).field("system", 1L).build();
-        org.influxdb.dto.Point influxPoint = org.influxdb.dto.Point.measurement(point.getMeasurement()).
-                fields(point.getFields()).build();
+        org.influxdb.dto.Point influxPoint = toInfluxDbPoint(point);
 
         for ( int i = 0 ; i < retryAttempts ; i++ ){
-
             try{
-//                influxDBclient.write(databaseName , TimeUnit.MILLISECONDS , serie);
                 influxDBclient.write(databaseName, RETENTION_DEFAULT, influxPoint);
                 log.debug("Data written into {}." , databaseName);
                 break;
@@ -117,6 +108,21 @@ public class InfluxDBv09 implements Destination {
     protected InfluxDB getInfluxDBClient(final String url, final String username,
             final String password) {
         return InfluxDBFactory.connect(uri, this.username, this.password);
+    }
+
+    /***
+     * Converts net.michalfoksa.mqtt2influxdb.dto.Point to org.influxdb.dto.Point
+     * @param point
+     *          to be converted
+     * @return point
+     */
+    protected org.influxdb.dto.Point toInfluxDbPoint( Point point ){
+        return org.influxdb.dto.Point
+                .measurement(point.getMeasurement())
+                .fields(point.getFields())
+                .tag(point.getTags())
+                .time(point.getTime() , point.getPrecision())
+                .build();
     }
 
     public String getDefaultDatabaseName() {
