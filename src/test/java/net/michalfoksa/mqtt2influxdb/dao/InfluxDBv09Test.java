@@ -11,7 +11,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-
 public class InfluxDBv09Test {
 
     int retries = 1;
@@ -85,9 +84,28 @@ public class InfluxDBv09Test {
         retries = 1;
         db.connect();
 
-        db.write( Point.measurement("measurement")
+        Point p = Point.measurement("measurement")
                 .field("temperature", 25.1)
                 .field("humidity", 80)
-                .build() );
+                .build();
+
+        db.write( p , "dbName" );
+        db.setDefaultDatabaseName("dbName");
+        db.write( p );
+    }
+
+    @Test
+    public void noDbNameTest(){
+        retries = 1;
+        db.connect();
+
+        Point p = Point.measurement("measurement")
+                .field("temperature", 25.1)
+                .field("humidity", 80)
+                .build();
+
+        exception.expect( IllegalArgumentException.class );
+        exception.expectMessage( "Database name must not be null or empty." );
+        db.write( p );
     }
 }
