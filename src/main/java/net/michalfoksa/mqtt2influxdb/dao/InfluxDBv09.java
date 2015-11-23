@@ -116,7 +116,7 @@ public class InfluxDBv09 implements Destination {
      *          to be converted
      * @return point
      */
-    protected org.influxdb.dto.Point toInfluxDbPoint( Point point ){
+    protected static org.influxdb.dto.Point toInfluxDbPoint( Point point ){
         return org.influxdb.dto.Point
                 .measurement(point.getMeasurement())
                 .fields(point.getFields())
